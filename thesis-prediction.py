@@ -5,7 +5,7 @@ from statsmodels.tsa.arima.model import ARIMA
 import datetime as dt
 from statsmodels.tsa.stattools import adfuller
 
-df = pd.read_csv('C:/Users/Mara Sferdian/Downloads/thesis/solar-eclipses.csv', parse_dates=['Date'])
+df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
 df = df.tail(200)
 
 list = df['Date'].tolist()
@@ -13,7 +13,7 @@ time = df['GrEclTime'].tolist()
 dates_and_times = [datetime.strptime(d + ' ' + t, '%Y-%m-%d %H:%M:%S') for d, t in zip(list, time)]
 date_format = '%Y-%m-%d'
 
-nodes_df = pd.read_csv('C:/Users/Mara Sferdian/Downloads/moon-passage-v2.csv')
+nodes_df = pd.read_csv('./moon-passage-v2.csv')
 asc_nodes = nodes_df['Ascending']
 desc_nodes = nodes_df['Descending']
 
