@@ -1,0 +1,8 @@
+Experiment results / version:
+
+v0. no optimizations - 83.24 %
+v1. optimization for asc/ desc nodes - 86.29 %
+v2. real asc/desc nodes - 80 %
+v3. optimization for asc/desc nodes & new moon - 83.24 %
+v4. optimization for new moon - 85.78 %
+v5. real asc/desc nodes & optimization for new moon - 83.3 %
