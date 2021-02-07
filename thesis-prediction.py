@@ -37,8 +37,8 @@ def get_orbit_position(period, reference, current):
 
 # the initial version
 def get_future_eclipses_v0(new_moon, asc_node, desc_node):
-    draconic_month = 27.212220
-    synodic_month = dt.timedelta(days=29.530587981)
+    draconic_month = 27
+    synodic_month = dt.timedelta(days=29.5)
     end_date = datetime.strptime('2100-12-31', '%Y-%m-%d')
     date = new_moon
     ans = []
@@ -47,7 +47,7 @@ def get_future_eclipses_v0(new_moon, asc_node, desc_node):
         desc_node_dif = abs(date - desc_node).days % draconic_month
         asc_node_dif = min(asc_node_dif, draconic_month - asc_node_dif)
         desc_node_dif = min(desc_node_dif, draconic_month - desc_node_dif)
-        error = 1.32
+        error = 5
         if min(asc_node_dif, desc_node_dif) < error:
             ans.append(date)
         asc_node += dt.timedelta(days=draconic_month)
@@ -167,6 +167,52 @@ def get_future_eclipses_v4(new_moon, asc_node, desc_node):
     return ans
 
 
+def get_future_eclipses_v6(new_moon, asc_node, desc_node):
+    draconic_month = 27.212220
+    synodic_month = dt.timedelta(days=29.530587981)
+    end_date = datetime.strptime('2100-12-31', '%Y-%m-%d')
+    ans = []
+    initial_index = 158
+    for i in range(initial_index, len(new_moon_dates)):
+        date = datetime.strptime(new_moon_dates[i], '%Y-%m-%d %H:%M')
+        asc_node_dif = abs(date - asc_node).days % draconic_month
+        desc_node_dif = abs(date - desc_node).days % draconic_month
+        asc_node_dif = min(asc_node_dif, draconic_month - asc_node_dif)
+        desc_node_dif = min(desc_node_dif, draconic_month - desc_node_dif)
+        error = 1.32
+        if min(asc_node_dif, desc_node_dif) < error:
+            ans.append(date)
+        asc_node += dt.timedelta(days=draconic_month)
+        desc_node += dt.timedelta(days=draconic_month)
+
+    return ans
+
+# get both new moon and nodes (real values)
+def get_future_eclipses_v7(new_moon, asc_node, desc_node):
+    draconic_month = 27.212220
+    end_date = datetime.strptime('2040-05-11', '%Y-%m-%d')
+    ans = []
+    initial_id_synodic = 158
+    initial_id_node = 171
+    i = 0
+    date = new_moon
+    while date < end_date:
+        asc_node_dif = abs(date - asc_node).days % draconic_month
+        desc_node_dif = abs(date - desc_node).days % draconic_month
+        asc_node_dif = min(asc_node_dif, draconic_month - asc_node_dif)
+        desc_node_dif = min(desc_node_dif, draconic_month - desc_node_dif)
+        error = 1.3
+        print(date, min(asc_node_dif, desc_node_dif))
+        if min(asc_node_dif, desc_node_dif) < error:
+            ans.append(date)
+        asc_node = datetime.strptime(asc_nodes[initial_id_node + i], '%Y-%m-%d %H:%M')
+        desc_node = datetime.strptime(desc_nodes[initial_id_node + i], '%Y-%m-%d %H:%M')
+        date = datetime.strptime(new_moon_dates[initial_id_synodic + i], '%Y-%m-%d %H:%M')
+        i += 1
+
+    return ans
+
+
 def get_nodes_mean_offset(asc_node, desc_node):
     draconic_month = 27.212220
     offset_asc_node = 0
@@ -186,7 +232,7 @@ def get_nodes_mean_offset(asc_node, desc_node):
 
     mean_asc_node_diff = offset_asc_node / iterations
     mean_desc_node_diff = offset_desc_node / iterations
-    return (mean_asc_node_diff, mean_desc_node_diff)
+    return mean_asc_node_diff, mean_desc_node_diff
 
 
 def get_synodic_mean_offset(date):
@@ -225,7 +271,7 @@ def print_predictions_v1():
     reference_date = datetime.strptime('2013-11-03 12:47:36', '%Y-%m-%d %H:%M:%S')
     asc_node = datetime.strptime('2013-10-06 22:08:00', '%Y-%m-%d %H:%M:%S')
     desc_node = datetime.strptime('2013-10-19 21:47:00', '%Y-%m-%d %H:%M:%S')
-    eclipses = get_future_eclipses_v4(reference_date, asc_node, desc_node)
+    eclipses = get_future_eclipses_v0(reference_date, asc_node, desc_node)
     count_correct = 0
     for d in eclipses:
         flag = 'OK' if check_if_prediction_is_correct(d) else 'NOT OK'
@@ -243,7 +289,7 @@ def print_predictions_v2():
     reference_date = datetime.strptime('2013-11-03 12:47:36', '%Y-%m-%d %H:%M:%S')
     asc_node = datetime.strptime('2013-10-06 22:08:00', '%Y-%m-%d %H:%M:%S')
     desc_node = datetime.strptime('2013-10-19 21:47:00', '%Y-%m-%d %H:%M:%S')
-    eclipses = get_future_eclipses_v2(reference_date, asc_node, desc_node)
+    eclipses = get_future_eclipses_v7(reference_date, asc_node, desc_node)
     count_correct = 0
     for d in eclipses:
         flag = 'OK' if check_if_prediction_is_correct(d) else 'NOT OK'
@@ -257,5 +303,5 @@ def print_predictions_v2():
     print('Accuracy: ' + str(count_correct * 100 / 60) + ' %')
 
 
-print_predictions_v2()
-#print_predictions_v1()
+#print_predictions_v2()
+print_predictions_v1()

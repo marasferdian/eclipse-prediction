@@ -6,3 +6,5 @@ v2. real asc/desc nodes - 80 %
 v3. optimization for asc/desc nodes & new moon - 83.24 %
 v4. optimization for new moon - 85.78 %
 v5. real asc/desc nodes & optimization for new moon - 83.3 %
+v6. real new moon dates - 79.18 %
+v7. real moon dates & real asc/desc nodes - 78.34 %
