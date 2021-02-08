@@ -1,10 +1,11 @@
 from math import sqrt
 
+import astropy
 import ephem
 import pandas as pd
-from pyephem_sunpath.sunpath import sunpos
+from sunpy.map.maputils import solar_angular_radius
+from pyephem_sunpath.sunpath import sunpos, sunpos_radiance
 from datetime import datetime,date,timedelta
-
 
 def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
     alt_diff = abs(moon_alt - sun_alt)
@@ -59,40 +60,31 @@ def get_closest_hour(date_str: str, debug=False):
     return best
 
 
-# df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
-# df = df.tail(200)
-#
-# eclipses_list = df['Date'].tolist()
-# eclipse_actual_time = df['GrEclTime'].tolist()
-# correct = 0
-# missed = 0
-# false_positives = 0
-# start_date = date(2012, 1, 1)
-# end_date = date(2100, 12, 31)
-# delta = timedelta(days=1)
-# while start_date <= end_date:
-#     date_str = datetime.strftime(start_date, '%Y-%m-%d')
-#     best = get_closest_hour(date_str, False)
-#     if best[1] < 1.4:
-#         if date_str in eclipses_list:
-#             correct += 1
-#         else:
-#             false_positives += 1
-#     else:
-#         if date_str in eclipses_list:
-#             missed += 1
-#     start_date += delta
-#
-# print("Correct:" + str(correct))
-# print("Missed: " + str(missed))
-# print("False positives: " + str(false_positives))
+df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
+df = df.tail(200)
 
-obs = ephem.Observer()
-obs.lon = '0'
-obs.lat = '0'
-obs.elevation = 0
-obs.date = '2012-11-13 22:12:55'
-moon_pos = ephem.Moon(obs)
-radius_str = [float(x) for x in str(moon_pos.radius).split(":")]
-radius = radius_str[0] + radius_str[1] / 60 + radius_str[2] / 3600
-print(radius)
+eclipses_list = df['Date'].tolist()
+eclipse_actual_time = df['GrEclTime'].tolist()
+correct = 0
+missed = 0
+false_positives = 0
+start_date = date(2012, 1, 1)
+end_date = date(2100, 12, 31)
+delta = timedelta(days=1)
+while start_date <= end_date:
+    date_str = datetime.strftime(start_date, '%Y-%m-%d')
+    best = get_closest_hour(date_str, False)
+    if best[1] < 1.4:
+        if date_str in eclipses_list:
+            correct += 1
+        else:
+            false_positives += 1
+    else:
+        if date_str in eclipses_list:
+            missed += 1
+    start_date += delta
+
+print("Correct:" + str(correct))
+print("Missed: " + str(missed))
+print("False positives: " + str(false_positives))
+
