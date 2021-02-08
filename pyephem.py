@@ -1,10 +1,7 @@
 from math import sqrt
-
-import astropy
 import ephem
 import pandas as pd
-from sunpy.map.maputils import solar_angular_radius
-from pyephem_sunpath.sunpath import sunpos, sunpos_radiance
+from pyephem_sunpath.sunpath import sunpos
 from datetime import datetime,date,timedelta
 
 def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
