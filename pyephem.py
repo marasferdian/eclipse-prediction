@@ -2,7 +2,9 @@ from math import sqrt
 import ephem
 import pandas as pd
 from pyephem_sunpath.sunpath import sunpos
-from datetime import datetime,date,timedelta
+from datetime import datetime, date, timedelta
+from positions import get_sun_moon_angular_radius
+
 
 def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
     alt_diff = abs(moon_alt - sun_alt)
@@ -15,8 +17,7 @@ def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
 
 
 def compute_sun_moon_positions(date, debug=False):
-
-    #print("Date: " + date)
+    # print("Date: " + date)
     obs = ephem.Observer()
     obs.lon = '0'
     obs.lat = '0'
@@ -37,8 +38,8 @@ def compute_sun_moon_positions(date, debug=False):
     moon_pos_az_min = float(moon_pos_az[1])
     moon_pos_az_sec = float(moon_pos_az[2])
     moon_pos_az_zec = moon_pos_az_deg + moon_pos_az_min / 60 + moon_pos_az_sec / 3600
-    #print("Moon position: (" + str(moon_pos_alt_zec) + " , " + str(moon_pos_az_zec) + ")")
-    #print("Sun position: " + str(sun_pos))
+    # print("Moon position: (" + str(moon_pos_alt_zec) + " , " + str(moon_pos_az_zec) + ")")
+    # print("Sun position: " + str(sun_pos))
     err = compute_abs_diff(moon_pos_alt_zec, moon_pos_az_zec, sun_pos[0], sun_pos[1], debug)
     if debug:
         print("\n")
@@ -46,8 +47,15 @@ def compute_sun_moon_positions(date, debug=False):
 
 
 def get_closest_hour(date_str: str, debug=False):
-    hours = [(str(x) + ':00:00') for x in range(24)]
+    hours_00 = [(str(x) + ':00:00') for x in range(24)]
+    hours_20 = [(str(x) + ':20:00') for x in range(24)]
+    hours_40 = [(str(x) + ':40:00') for x in range(24)]
     best = '', 100000.0
+    hours = []
+    for h00, h20, h40 in zip(hours_00, hours_20, hours_40):
+        hours.append(h00)
+        hours.append(h20)
+        hours.append(h40)
     for h in hours:
         pos = compute_sun_moon_positions(date_str + ' ' + h)
         if pos < best[1]:
@@ -71,7 +79,9 @@ delta = timedelta(days=1)
 while start_date <= end_date:
     date_str = datetime.strftime(start_date, '%Y-%m-%d')
     best = get_closest_hour(date_str, False)
-    if best[1] < 1.4:
+    sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
+    err = (sun_rad + moon_rad) * 2.7
+    if best[1] < err:
         if date_str in eclipses_list:
             correct += 1
         else:
@@ -84,4 +94,3 @@ while start_date <= end_date:
 print("Correct:" + str(correct))
 print("Missed: " + str(missed))
 print("False positives: " + str(false_positives))
-
