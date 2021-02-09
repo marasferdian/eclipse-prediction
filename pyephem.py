@@ -61,14 +61,16 @@ def get_closest_hour_positions(date_str: str, debug=False):
 def get_closest_hour_separation(date_str: str):
     found = False
     best_val = - 10000
+    best_coordinates = ''
     hours = [(str(x) + y) for x in range(24) for y in [':00:00', ':20:00', ':40:00']]
     for h in hours:
-        bool, best = check_if_any_coord_validate_eq(date_str + ' ' + h)
+        bool, best, best_coord = check_if_any_coord_validate_eq(date_str + ' ' + h)
         if bool:
             found = True
             if best > best_val:
                 best_val = best
-    return found, best_val
+                best_coordinates = best_coord
+    return found, best_val, best_coordinates
 
 
 df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
@@ -115,8 +117,8 @@ def get_eclipses_using_separation():
     delta = timedelta(days=1)
     while start_date <= end_date:
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
-        is_eclipse, best = get_closest_hour_separation(date_str)
-        print("For date " + date_str + " best is " + str(best))
+        is_eclipse, best, best_coord = get_closest_hour_separation(date_str)
+        print("For date " + date_str + " best is " + str(best) + " at coordinates (long:lat) " + best_coord)
         print(date_str)
         if is_eclipse:
             if date_str in eclipses_list:
