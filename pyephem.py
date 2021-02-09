@@ -3,7 +3,7 @@ import ephem
 import pandas as pd
 from pyephem_sunpath.sunpath import sunpos
 from datetime import datetime, date, timedelta
-from positions import get_sun_moon_angular_radius
+from helper_functions import get_sun_moon_angular_radius, get_separation, check_if_any_coord_validate_eq
 
 
 def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
@@ -46,16 +46,9 @@ def compute_sun_moon_positions(date, debug=False):
     return err
 
 
-def get_closest_hour(date_str: str, debug=False):
-    hours_00 = [(str(x) + ':00:00') for x in range(24)]
-    hours_20 = [(str(x) + ':20:00') for x in range(24)]
-    hours_40 = [(str(x) + ':40:00') for x in range(24)]
+def get_closest_hour_positions(date_str: str, debug=False):
     best = '', 100000.0
-    hours = []
-    for h00, h20, h40 in zip(hours_00, hours_20, hours_40):
-        hours.append(h00)
-        hours.append(h20)
-        hours.append(h40)
+    hours = [(str(x) + y) for x in range(24) for y in [':00:00', ':20:00', ':40:00']]
     for h in hours:
         pos = compute_sun_moon_positions(date_str + ' ' + h)
         if pos < best[1]:
@@ -65,32 +58,91 @@ def get_closest_hour(date_str: str, debug=False):
     return best
 
 
+def get_closest_hour_separation(date_str: str):
+    found = False
+    best_val = - 10000
+    hours = [(str(x) + y) for x in range(24) for y in [':00:00', ':20:00', ':40:00']]
+    for h in hours:
+        bool, best = check_if_any_coord_validate_eq(date_str + ' ' + h)
+        if bool:
+            found = True
+            if best > best_val:
+                best_val = best
+    return found, best_val
+
+
 df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
 df = df.tail(200)
 
 eclipses_list = df['Date'].tolist()
 eclipse_actual_time = df['GrEclTime'].tolist()
-correct = 0
-missed = 0
-false_positives = 0
-start_date = date(2012, 1, 1)
-end_date = date(2100, 12, 31)
-delta = timedelta(days=1)
-while start_date <= end_date:
-    date_str = datetime.strftime(start_date, '%Y-%m-%d')
-    best = get_closest_hour(date_str, False)
-    sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
-    err = (sun_rad + moon_rad) * 2.7
-    if best[1] < err:
-        if date_str in eclipses_list:
-            correct += 1
-        else:
-            false_positives += 1
-    else:
-        if date_str in eclipses_list:
-            missed += 1
-    start_date += delta
 
-print("Correct:" + str(correct))
-print("Missed: " + str(missed))
-print("False positives: " + str(false_positives))
+
+def get_eclipses_using_closest_hour():
+    correct = 0
+    missed = 0
+    false_positives = 0
+    start_date = date(2012, 1, 1)
+    end_date = date(2100, 12, 31)
+    delta = timedelta(days=1)
+    while start_date <= end_date:
+        date_str = datetime.strftime(start_date, '%Y-%m-%d')
+        best = get_closest_hour_positions(date_str, False)
+        sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
+        coeff = 2.5
+        err = (sun_rad + moon_rad) * coeff
+        if best[1] < err:
+            if date_str in eclipses_list:
+                correct += 1
+            else:
+                false_positives += 1
+        else:
+            if date_str in eclipses_list:
+                missed += 1
+        start_date += delta
+
+    print("Correct:" + str(correct))
+    print("Missed: " + str(missed))
+    print("False positives: " + str(false_positives))
+
+
+def get_eclipses_using_separation():
+    correct = 0
+    missed = 0
+    false_positives = 0
+    start_date = date(2012, 1, 1)
+    end_date = date(2012, 12, 31)
+    delta = timedelta(days=1)
+    while start_date <= end_date:
+        date_str = datetime.strftime(start_date, '%Y-%m-%d')
+        is_eclipse, best = get_closest_hour_separation(date_str)
+        print("For date " + date_str + " best is " + str(best))
+        print(date_str)
+        if is_eclipse:
+            if date_str in eclipses_list:
+                correct += 1
+            else:
+                false_positives += 1
+        else:
+            if date_str in eclipses_list:
+                missed += 1
+        start_date += delta
+
+    print("Correct:" + str(correct))
+    print("Missed: " + str(missed))
+    print("False positives: " + str(false_positives))
+
+
+def print_values():
+    for eclipse, time in zip(eclipses_list, eclipse_actual_time):
+        print("Eclipse date: " + str(eclipse) + ' ' + str(time))
+        sun_rad, moon_rad = get_sun_moon_angular_radius(eclipse + ' ' + time)
+        print("Sun rad: " + str(sun_rad))
+        print("Moon rad: " + str(moon_rad))
+        sep = get_separation(eclipse + ' ' + time)
+        print("Separation: " + str(sep))
+        print("\n")
+
+
+get_eclipses_using_separation()
+# print_values()
