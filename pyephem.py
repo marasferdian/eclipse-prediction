@@ -48,7 +48,7 @@ def compute_sun_moon_positions(date, debug=False):
 
 def get_closest_hour_positions(date_str: str, debug=False):
     best = '', 100000.0
-    hours = [(str(x) + y) for x in range(24) for y in [':00:00', ':20:00', ':40:00']]
+    hours = [(str(x) + y) for x in range(24) for y in [':00:00']]
     for h in hours:
         pos = compute_sun_moon_positions(date_str + ' ' + h)
         if pos < best[1]:
@@ -91,7 +91,7 @@ def get_eclipses_using_closest_hour():
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
         best = get_closest_hour_positions(date_str, False)
         sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
-        coeff = 2.5
+        coeff = 2.7
         err = (sun_rad + moon_rad) * coeff
         if best[1] < err:
             if date_str in eclipses_list:
@@ -146,5 +146,6 @@ def print_values():
         print("\n")
 
 
-get_eclipses_using_separation()
+# get_eclipses_using_separation()
 # print_values()
+get_eclipses_using_closest_hour()
