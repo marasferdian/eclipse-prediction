@@ -68,7 +68,7 @@ def check_if_any_coord_validate_eq(date_str):
     best_coord = ''
     for c in coordinates:
         res = calculate_diff_for_coords(c, date_str)
-        if res > 0 and res > best:
+        if res > -0.003 and res > best:
             found = True
             best = res
             best_coord = c
