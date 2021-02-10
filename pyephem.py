@@ -108,24 +108,36 @@ def get_eclipses_using_closest_hour():
     print("False positives: " + str(false_positives))
 
 
-def get_eclipses_using_separation():
+def get_eclipses_using_separation(get_all_locations=False):
+    delta = timedelta(days=1)
     correct = 0
     missed = 0
     false_positives = 0
-    start_date = date(2012, 1, 1)
-    end_date = date(2012, 12, 31)
-    delta = timedelta(days=1)
+    start_date = date(2018, 1, 1)
+    end_date = date(2018, 12, 31)
     while start_date <= end_date:
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
         is_eclipse, best, best_coord = get_closest_hour_separation(date_str)
-        print("For date " + date_str + " best is " + str(best) + " at coordinates (long:lat) " + best_coord)
+        if is_eclipse:
+            print("For date " + date_str + " best is " + str(best) + " at coordinates (long:lat) " + best_coord)
         print(date_str)
         if is_eclipse:
             if date_str in eclipses_list:
                 correct += 1
+                if not get_all_locations:
+                    delta = timedelta(days=20)
             else:
-                false_positives += 1
+                next_day = start_date + timedelta(days=1)
+                next_day_str = datetime.strftime(next_day, '%Y-%m-%d')
+                is_next_day_eclipse = get_closest_hour_separation(next_day_str)[0]
+                if not get_all_locations and is_next_day_eclipse:
+                    if next_day_str in eclipses_list:
+                        correct += 1
+                        start_date += timedelta(days=20)
+                elif not is_next_day_eclipse:
+                    false_positives += 1
         else:
+            delta = timedelta(days=1)
             if date_str in eclipses_list:
                 missed += 1
         start_date += delta
@@ -146,6 +158,6 @@ def print_values():
         print("\n")
 
 
-# get_eclipses_using_separation()
+get_eclipses_using_separation()
 # print_values()
-get_eclipses_using_closest_hour()
+#get_eclipses_using_closest_hour()
