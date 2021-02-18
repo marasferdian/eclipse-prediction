@@ -2,6 +2,17 @@ import ephem
 from datetime import datetime, date, timedelta
 
 
+def get_positions(date_str):
+    obs = ephem.Observer()
+    obs.lon = '0'
+    obs.lat = '0'
+    obs.elevation = 0
+    obs.date = date_str
+    moon_pos = ephem.Moon(obs)
+    sun_pos = ephem.Sun(obs)
+    return moon_pos.alt, moon_pos.az, sun_pos.alt, sun_pos.az
+
+
 def get_sun_moon_angular_radius(date_str):
     obs = ephem.Observer()
     obs.lon = '0'
@@ -73,3 +84,9 @@ def check_if_any_coord_validate_eq(date_str):
             best = res
             best_coord = c
     return found, best, best_coord
+
+
+def convert_to_decimal_degrees(degrees_str):
+    deg = [float(token) for token in degrees_str.split(":")]
+    dec_deg = deg[0] + deg[1] / 60 + deg[2] / 3600
+    return dec_deg
