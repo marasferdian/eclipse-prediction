@@ -1,6 +1,8 @@
 import ephem
 from datetime import datetime, date, timedelta
 
+from numba import jit, cuda, vectorize, njit
+
 
 def get_positions(date_str):
     obs = ephem.Observer()
@@ -70,6 +72,13 @@ def calculate_diff_for_coords(coord, date_str):
     separation = separation_str[0] + separation_str[1] / 60 + separation_str[2] / 3600
 
     return moon_radius + sun_radius - separation
+
+
+def is_initial_separation_condition_valid(date_str):
+    c = '0:0'
+    date_str = date_str + ' 12:00:00'
+    sep = get_separation(date_str)
+    return sep < 30
 
 
 def check_if_any_coord_validate_eq(date_str):

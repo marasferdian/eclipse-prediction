@@ -7,7 +7,7 @@ df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
 df = df.tail(500)
 eclipses_list = df['Date'].tolist()
 
-with open('solar-eclipses-NN.csv', mode='w') as csv_file:
+with open('solar-eclipses-NN_2.csv', mode='w') as csv_file:
     fieldnames = ['Date', 'Moon Alt', 'Moon Az', 'Sun Alt', 'Sun Az', 'Is Eclipse']
     writer = csv.DictWriter(csv_file, fieldnames=fieldnames)
 
@@ -22,6 +22,8 @@ with open('solar-eclipses-NN.csv', mode='w') as csv_file:
         sun_alt = convert_to_decimal_degrees(str(sun_alt))
         sun_az = convert_to_decimal_degrees(str(sun_az))
         print(moon_alt, moon_az, sun_alt, sun_az)
-        isEclipse = date_str in eclipses_list
+        previous_date = start_date - timedelta(days=1)
+        previous_date_str = datetime.strftime(previous_date,'%Y-%m-%d')
+        isEclipse = date_str in eclipses_list or previous_date in eclipses_list
         writer.writerow({'Date': date_str, 'Moon Alt': moon_alt, 'Moon Az': moon_az, 'Sun Alt': sun_alt, 'Sun Az': sun_az, 'Is Eclipse': isEclipse})
         start_date += timedelta(days=1)

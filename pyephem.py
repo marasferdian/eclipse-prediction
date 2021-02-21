@@ -1,9 +1,12 @@
 from math import sqrt
+from threading import Thread
+
 import ephem
 import pandas as pd
 from pyephem_sunpath.sunpath import sunpos
 from datetime import datetime, date, timedelta
-from helper_functions import get_sun_moon_angular_radius, get_separation, check_if_any_coord_validate_eq
+from helper_functions import get_sun_moon_angular_radius, get_separation, check_if_any_coord_validate_eq, \
+    is_initial_separation_condition_valid
 
 
 def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
@@ -110,45 +113,63 @@ def get_eclipses_using_closest_hour():
     print("False positives: " + str(false_positives))
 
 
-def get_eclipses_using_separation(get_all_locations=False):
+def get_all_eclipses(start_date, end_date, get_all_locations=False):
+    best = ''
+    best_coord = ''
+    eclipses = []
     delta = timedelta(days=1)
-    correct = 0
-    missed = 0
-    false_positives = 0
-    start_date = date(2012, 1, 1)
-    end_date = date(2100, 12, 31)
-    while start_date <= end_date:
+    while start_date < end_date:
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
-        is_eclipse, best, best_coord = get_closest_hour_separation(date_str)
+        # print("Calculating for " + date_str)
+        if is_initial_separation_condition_valid(date_str):
+            is_eclipse, best, best_coord = get_closest_hour_separation(date_str)
+        else:
+            is_eclipse = False
         if is_eclipse:
+            eclipses.append(date_str)
             print("For date " + date_str + " there will be an eclipse visible at " + str(best) + "at coordinates ("
                                                                                                  "long:lat) " +
                   best_coord)
-        print(date_str)
-        if is_eclipse:
-            if date_str in eclipses_list:
-                correct += 1
-                if not get_all_locations:
-                    delta = timedelta(days=20)
+            if get_all_locations:
+                start_date += delta
             else:
-                next_day = start_date + timedelta(days=1)
-                next_day_str = datetime.strftime(next_day, '%Y-%m-%d')
-                is_next_day_eclipse = get_closest_hour_separation(next_day_str)[0]
-                if not get_all_locations and is_next_day_eclipse:
-                    if next_day_str in eclipses_list:
-                        correct += 1
-                        start_date += timedelta(days=20)
-                elif not is_next_day_eclipse:
-                    false_positives += 1
+                start_date += timedelta(days=20)
         else:
-            delta = timedelta(days=1)
-            if date_str in eclipses_list:
-                missed += 1
-        start_date += delta
+            start_date += delta
 
-    print("Correct:" + str(correct))
-    print("Missed: " + str(missed))
-    print("False positives: " + str(false_positives))
+    return eclipses
+
+
+class GetEclipsesThread(Thread):
+    def __init__(self, start_date, end_date, output_list: list, get_all_locations=False):
+        super().__init__()
+        self.get_all_locations = get_all_locations
+        self.start_date = start_date
+        self.end_date = end_date
+        self.output_list = output_list
+
+    def run(self) -> None:
+        self.output_list.extend(get_all_eclipses(self.start_date, self.end_date, self.get_all_locations))
+
+
+def get_all_ecl_2020_2100():
+    ranges = [(x, x + 10) for x in range(2020, 2100, 10)]
+    matches = []
+    threads = []
+    for r in ranges:
+        m = []
+        t = GetEclipsesThread(date(r[0], 1, 1), date(r[1], 1, 1), m, get_all_locations=True)
+        threads.append(t)
+        matches.append(m)
+        t.start()
+    for t in threads:
+        t.join()
+    ans = []
+    for m in matches:
+        ans.extend(m)
+
+    print(ans)
+    return ans
 
 
 def print_values():
@@ -162,7 +183,7 @@ def print_values():
         print("\n")
 
 
-# get_eclipses_using_separation(get_all_locations=False)
-# print_values()
-#get_eclipses_using_closest_hour()
-print(get_closest_hour_separation('2098-10-24'))
+
+
+# get_eclipses_using_closest_hour()
+get_all_ecl_2020_2100()
