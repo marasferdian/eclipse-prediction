@@ -141,7 +141,7 @@ def get_all_eclipses(start_date, end_date, get_all_locations=False):
 
 
 class GetEclipsesThread(Thread):
-    def __init__(self, start_date, end_date, output_list: list, get_all_locations=False):
+    def __init__(self, start_date, end_date, output_list: list, get_all_locations):
         super().__init__()
         self.get_all_locations = get_all_locations
         self.start_date = start_date
@@ -152,13 +152,13 @@ class GetEclipsesThread(Thread):
         self.output_list.extend(get_all_eclipses(self.start_date, self.end_date, self.get_all_locations))
 
 
-def get_all_ecl_2020_2100():
+def get_all_ecl_2020_2100(get_all_locations=False):
     ranges = [(x, x + 10) for x in range(2020, 2100, 10)]
     matches = []
     threads = []
     for r in ranges:
         m = []
-        t = GetEclipsesThread(date(r[0], 1, 1), date(r[1], 1, 1), m, get_all_locations=True)
+        t = GetEclipsesThread(date(r[0], 1, 1), date(r[1], 1, 1), m, get_all_locations=get_all_locations)
         threads.append(t)
         matches.append(m)
         t.start()
@@ -186,4 +186,4 @@ def print_values():
 
 
 # get_eclipses_using_closest_hour()
-get_all_ecl_2020_2100()
+get_all_ecl_2020_2100(get_all_locations=True)
