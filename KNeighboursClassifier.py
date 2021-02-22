@@ -21,26 +21,16 @@ features = list(train.columns)
 print(train.shape)
 print(test.shape)
 
-# Train tree
-tree = DecisionTreeClassifier(random_state=RSEED, max_depth=25)
-tree.fit(train, train_labels)
-print(f'Decision tree has {tree.tree_.node_count} nodes with maximum depth {tree.tree_.max_depth}.')
-print(f'Model Accuracy: {tree.score(train, train_labels)}')
-# we get 1.0 accuracy (100%); is it overfitted?
+knn = KNeighborsClassifier(n_neighbors=1)
+# best accuracy for n = 1
+knn.fit(train, train_labels)
+print(f'Model Accuracy: {knn.score(train, train_labels)}')
 
-# wrong_test_labels = []
-# for each in test_labels:
-#     if each == 1:
-#         wrong_test_labels.append(0)
-#     else:
-#         wrong_test_labels.append(1)
-
-print(f'Test Accuracy: {tree.score(test, test_labels)}')
-print(99.19393939393939 / 100 * len(test))
+print(f'Test Accuracy: {knn.score(test, test_labels)}')
+print(99.41212121212121 / 100 * len(test))
 print("correct out of")
 print(len(test))
-
-predictions = tree.predict(test)
+predictions = knn.predict(test)
 wrong = 0
 eclipses = 0
 for i in range(len(test_labels)):
@@ -51,4 +41,11 @@ for i in range(len(test_labels)):
         wrong += 1
 
 print(eclipses)
+
+actual = 0
+for each in test_labels:
+    if each == 1:
+        actual += 1
+
+print(actual)
 
