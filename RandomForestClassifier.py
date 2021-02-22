@@ -51,4 +51,11 @@ for i in range(len(test_labels)):
         wrong += 1
 
 print(eclipses)
+actual = 0
+for each in test_labels:
+    if each == 1:
+        actual += 1
+
+print("predicted out of")
+print(actual)
 

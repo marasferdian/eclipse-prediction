@@ -47,5 +47,6 @@ for each in test_labels:
     if each == 1:
         actual += 1
 
+print("predicted out of")
 print(actual)
 
