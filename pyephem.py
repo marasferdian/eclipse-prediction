@@ -3,10 +3,8 @@ from threading import Thread
 
 import ephem
 import pandas as pd
-from pyephem_sunpath.sunpath import sunpos
 from datetime import datetime, date, timedelta
-from helper_functions import get_sun_moon_angular_radius, get_separation, check_if_any_coord_validate_eq, \
-    is_initial_separation_condition_valid
+from helper_functions import *
 
 
 def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
@@ -96,7 +94,7 @@ eclipses_list = df['Date'].tolist()
 eclipse_actual_time = df['GrEclTime'].tolist()
 
 
-def get_eclipses_using_closest_hour():
+def get_eclipses_using_abs_distance():
     correct = 0
     missed = 0
     false_positives = 0
@@ -194,6 +192,5 @@ def print_values():
         print("\n")
 
 
-
-get_eclipses_using_closest_hour()
-#get_all_ecl_2020_2100(get_all_locations=True)
+get_eclipses_using_abs_distance()
+# get_all_ecl_2020_2100(get_all_locations=True)
