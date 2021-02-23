@@ -27,10 +27,10 @@ def compute_sun_moon_positions(date, debug=False):
     obs.elevation = 0
     obs.date = date
     moon_pos = ephem.Moon(obs)
-
+    sun_pos = ephem.Sun(obs)
     date_time = datetime.strptime(date, "%Y-%m-%d %H:%M:%S")
     time = datetime(date_time.year, date_time.month, date_time.day, date_time.hour, date_time.minute, date_time.second)
-    sun_pos = sunpos(time, 0, 0, 0)
+
     moon_pos_alt = str(moon_pos.alt).split(":")
     moon_pos_alt_deg = float(moon_pos_alt[0])
     moon_pos_alt_min = float(moon_pos_alt[1])
@@ -41,9 +41,20 @@ def compute_sun_moon_positions(date, debug=False):
     moon_pos_az_min = float(moon_pos_az[1])
     moon_pos_az_sec = float(moon_pos_az[2])
     moon_pos_az_zec = moon_pos_az_deg + moon_pos_az_min / 60 + moon_pos_az_sec / 3600
+
+    sun_pos_alt = str(sun_pos.alt).split(":")
+    sun_pos_alt_deg = float(sun_pos_alt[0])
+    sun_pos_alt_min = float(sun_pos_alt[1])
+    sun_pos_alt_sec = float(sun_pos_alt[2])
+    sun_pos_alt_zec = sun_pos_alt_deg + sun_pos_alt_min / 60 + sun_pos_alt_sec / 3600
+    sun_pos_az = str(sun_pos.az).split(":")
+    sun_pos_az_deg = float(sun_pos_az[0])
+    sun_pos_az_min = float(sun_pos_az[1])
+    sun_pos_az_sec = float(sun_pos_az[2])
+    sun_pos_az_zec = sun_pos_az_deg + sun_pos_az_min / 60 + sun_pos_az_sec / 3600
     # print("Moon position: (" + str(moon_pos_alt_zec) + " , " + str(moon_pos_az_zec) + ")")
     # print("Sun position: " + str(sun_pos))
-    err = compute_abs_diff(moon_pos_alt_zec, moon_pos_az_zec, sun_pos[0], sun_pos[1], debug)
+    err = compute_abs_diff(moon_pos_alt_zec, moon_pos_az_zec, sun_pos_alt_zec, sun_pos_az_zec, debug)
     if debug:
         print("\n")
     return err
@@ -89,14 +100,14 @@ def get_eclipses_using_closest_hour():
     correct = 0
     missed = 0
     false_positives = 0
-    start_date = date(2012, 1, 1)
+    start_date = date(2020, 1, 1)
     end_date = date(2100, 12, 31)
     delta = timedelta(days=1)
     while start_date <= end_date:
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
         best = get_closest_hour_positions(date_str, False)
         sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
-        coeff = 2.7
+        coeff = 2.8
         err = (sun_rad + moon_rad) * coeff
         if best[1] < err:
             if date_str in eclipses_list:
@@ -184,6 +195,5 @@ def print_values():
 
 
 
-
-# get_eclipses_using_closest_hour()
-get_all_ecl_2020_2100(get_all_locations=True)
+get_eclipses_using_closest_hour()
+#get_all_ecl_2020_2100(get_all_locations=True)

@@ -7,7 +7,6 @@ from sklearn.neighbors import KNeighborsClassifier
 RSEED = 50
 
 df = pd.read_csv('./solar-eclipses-NN.csv').sample(55000, random_state=RSEED)
-#df['Date'] = pd.to_datetime(df['Date'])
 df.set_index('Date', inplace=True)
 df['Is Eclipse'] = df['Is Eclipse'].replace({True: 1, False: 0})
 df = df.select_dtypes('number')
