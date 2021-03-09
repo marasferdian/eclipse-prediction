@@ -5,7 +5,7 @@
 -For each date between start year & end year:
 	for each hour of the day:
 		finds best (smallest) value <- a). computes position (alt, az) of sun and moon at Equator, alt = 0
-									   b). calculates absolute difference between the planets <- sqrt(alt_diff ** 2 + az_diff ** 2)
+									   b). calculates absolute difference between sun & moon <- sqrt(alt_diff ** 2 + az_diff ** 2)
 									   c). calculate error value in that date: coeff = 2.8
 																			   err = (sun_rad + moon_rad) * coeff
 									   d). if difference < err: it is considered an eclipse
