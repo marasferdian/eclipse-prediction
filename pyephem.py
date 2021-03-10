@@ -2,22 +2,33 @@ from math import sqrt
 from threading import Thread
 
 import ephem
+import numpy as np
 import pandas as pd
 from datetime import datetime, date, timedelta
 from helper_functions import *
 
 
-def compute_abs_diff(moon_alt, moon_az, sun_alt, sun_az, debug=False):
+def compute_abs_diff_lunar(moon_alt, moon_az, sun_alt, sun_az, debug=False):
+    alt_diff = moon_alt + sun_alt
+    az_diff = min(abs(sun_az - moon_az - 180), abs(sun_az - moon_az + 180))
+    if debug:
+        print("Alt diff: " + str(alt_diff))
+        print("Az diff: " + str(az_diff))
+        print("Sqrt: " + str(sqrt(alt_diff ** 2 + az_diff ** 2)))
+    return sqrt(alt_diff**2 + az_diff**2)
+
+
+def compute_abs_diff_solar(moon_alt, moon_az, sun_alt, sun_az, debug=False):
     alt_diff = abs(moon_alt - sun_alt)
     az_diff = abs(moon_az - sun_az)
     if debug:
         print("Alt diff: " + str(alt_diff))
         print("Az diff: " + str(az_diff))
-        print("Sum: " + str(alt_diff + az_diff))
+        print("Sqrt: " + str(sqrt(alt_diff ** 2 + az_diff ** 2)))
     return sqrt(alt_diff ** 2 + az_diff ** 2)
 
 
-def compute_sun_moon_positions(date, debug=False):
+def compute_sun_moon_positions(date, debug=False, solar=True):
     # print("Date: " + date)
     obs = ephem.Observer()
     obs.lon = '0'
@@ -51,18 +62,21 @@ def compute_sun_moon_positions(date, debug=False):
     sun_pos_az_sec = float(sun_pos_az[2])
     sun_pos_az_zec = sun_pos_az_deg + sun_pos_az_min / 60 + sun_pos_az_sec / 3600
     # print("Moon position: (" + str(moon_pos_alt_zec) + " , " + str(moon_pos_az_zec) + ")")
-    # print("Sun position: " + str(sun_pos))
-    err = compute_abs_diff(moon_pos_alt_zec, moon_pos_az_zec, sun_pos_alt_zec, sun_pos_az_zec, debug)
+    # print("Sun position: " + str(sun_pos_alt_zec) + " , " + str(sun_pos_az_zec) + ")")
+    if solar == True:
+        err = compute_abs_diff_solar(moon_pos_alt_zec, moon_pos_az_zec, sun_pos_alt_zec, sun_pos_az_zec, debug)
+    else:
+        err = compute_abs_diff_lunar(moon_pos_alt_zec, moon_pos_az_zec, sun_pos_alt_zec, sun_pos_az_zec, debug)
     if debug:
         print("\n")
     return err
 
 
-def get_closest_hour_positions(date_str: str, debug=False):
+def get_closest_hour_positions(date_str: str, debug=False, solar=True):
     best = '', 100000.0
     hours = [(str(x) + y) for x in range(24) for y in [':00:00']]
     for h in hours:
-        pos = compute_sun_moon_positions(date_str + ' ' + h)
+        pos = compute_sun_moon_positions(date_str + ' ' + h, debug, solar)
         if pos < best[1]:
             best = h, pos
     if debug:
@@ -87,14 +101,7 @@ def get_closest_hour_separation(date_str: str):
     return found, best_h, best_coordinates
 
 
-df = pd.read_csv('./solar-eclipses.csv', parse_dates=['Date'])
-df = df.tail(200)
-
-eclipses_list = df['Date'].tolist()
-eclipse_actual_time = df['GrEclTime'].tolist()
-
-
-def get_eclipses_using_abs_distance():
+def get_solar_eclipses_using_abs_distance():
     correct = 0
     missed = 0
     false_positives = 0
@@ -122,7 +129,35 @@ def get_eclipses_using_abs_distance():
     print("False positives: " + str(false_positives))
 
 
-def get_all_eclipses(start_date, end_date, get_all_locations=False):
+def get_lunar_eclipses_using_abs_distance():
+    correct = 0
+    missed = 0
+    false_positives = 0
+    start_date = date(2020, 1, 1)
+    end_date = date(2100, 12, 31)
+    delta = timedelta(days=1)
+    while start_date <= end_date:
+        date_str = datetime.strftime(start_date, '%Y-%m-%d')
+        best = get_closest_hour_positions(date_str, False, solar=False)
+        sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
+        coeff = 5.3
+        err = moon_rad * coeff
+        if best[1] < err:
+            if date_str in eclipses_list:
+                correct += 1
+            else:
+                false_positives += 1
+        else:
+            if date_str in eclipses_list:
+                missed += 1
+        start_date += delta
+
+    print("Correct:" + str(correct))
+    print("Missed: " + str(missed))
+    print("False positives: " + str(false_positives))
+
+
+def get_all_solar_eclipses(start_date, end_date, get_all_locations=False):
     best = ''
     best_coord = ''
     eclipses = []
@@ -158,7 +193,7 @@ class GetEclipsesThread(Thread):
         self.output_list = output_list
 
     def run(self) -> None:
-        self.output_list.extend(get_all_eclipses(self.start_date, self.end_date, self.get_all_locations))
+        self.output_list.extend(get_all_solar_eclipses(self.start_date, self.end_date, self.get_all_locations))
 
 
 def get_all_ecl_2020_2100(get_all_locations=False):
@@ -192,5 +227,11 @@ def print_values():
         print("\n")
 
 
-get_eclipses_using_abs_distance()
+df = pd.read_csv('./lunar-eclipses.csv', parse_dates=['Date'])
+df = df.tail(200)
+
+eclipses_list = df['Date'].tolist()
+eclipse_actual_time = df['GrEclTime'].tolist()
+get_lunar_eclipses_using_abs_distance()
+
 # get_all_ecl_2020_2100(get_all_locations=True)

@@ -37,8 +37,8 @@ def get_orbit_position(period, reference, current):
 
 # the initial version
 def get_future_eclipses_v0(new_moon, asc_node, desc_node):
-    draconic_month = 27
-    synodic_month = dt.timedelta(days=29.5)
+    draconic_month = 27.212220
+    synodic_month = dt.timedelta(days=29.530587981)
     end_date = datetime.strptime('2100-12-31', '%Y-%m-%d')
     date = new_moon
     ans = []
