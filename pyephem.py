@@ -74,7 +74,7 @@ def compute_sun_moon_positions(date, debug=False, solar=True):
 
 def get_closest_hour_positions(date_str: str, debug=False, solar=True):
     best = '', 100000.0
-    hours = [(str(x) + y) for x in range(24) for y in [':00:00']]
+    hours = [(str(x) + y) for x in range(24) for y in [':00:00', ':30:00']]
     for h in hours:
         pos = compute_sun_moon_positions(date_str + ' ' + h, debug, solar)
         if pos < best[1]:
@@ -95,6 +95,23 @@ def get_closest_hour_separation(date_str: str):
         if bool:
             found = True
             if best > best_val:
+                best_val = best
+                best_coordinates = best_coord
+                best_h = h
+    return found, best_h, best_coordinates
+
+
+def get_closest_hour_separation_lunar(date_str: str):
+    found = False
+    best_val = 10000
+    best_coordinates = ''
+    best_h = -1
+    hours = [(str(x) + y) for x in range(24) for y in [':00:00', ':20:00', ':40:00']]
+    for h in hours:
+        bool, best, best_coord = check_if_any_coord_validate_eq_lunar(date_str + ' ' + h)
+        if bool:
+            found = True
+            if best < best_val:
                 best_val = best
                 best_coordinates = best_coord
                 best_h = h
@@ -140,7 +157,7 @@ def get_lunar_eclipses_using_abs_distance():
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
         best = get_closest_hour_positions(date_str, False, solar=False)
         sun_rad, moon_rad = get_sun_moon_angular_radius(date_str)
-        coeff = 5.3
+        coeff = 4.7
         err = moon_rad * coeff
         if best[1] < err:
             if date_str in eclipses_list:
@@ -184,6 +201,33 @@ def get_all_solar_eclipses(start_date, end_date, get_all_locations=False):
     return eclipses
 
 
+def get_all_lunar_eclipses(start_date, end_date, get_all_locations=False):
+    best = ''
+    best_coord = ''
+    eclipses = []
+    delta = timedelta(days=1)
+    while start_date < end_date:
+        date_str = datetime.strftime(start_date, '%Y-%m-%d')
+        print("Calculating for " + date_str)
+        is_eclipse, best, best_coord = get_closest_hour_separation_lunar(date_str)
+        if is_eclipse:
+            if date_str not in eclipses_list:
+                print('!'+date_str)
+            eclipses.append(date_str)
+            print("For date " + date_str + " there will be an eclipse visible at " + str(best) + "at coordinates ("
+                                                                                                 "long:lat) " +
+                  best_coord)
+            if get_all_locations:
+                start_date += delta
+            else:
+                start_date += timedelta(days=20)
+        else:
+            start_date += delta
+
+    print(eclipses)
+    return eclipses
+
+
 class GetEclipsesThread(Thread):
     def __init__(self, start_date, end_date, output_list: list, get_all_locations):
         super().__init__()
@@ -193,7 +237,7 @@ class GetEclipsesThread(Thread):
         self.output_list = output_list
 
     def run(self) -> None:
-        self.output_list.extend(get_all_solar_eclipses(self.start_date, self.end_date, self.get_all_locations))
+        self.output_list.extend(get_all_lunar_eclipses(self.start_date, self.end_date, self.get_all_locations))
 
 
 def get_all_ecl_2020_2100(get_all_locations=False):
@@ -232,6 +276,8 @@ df = df.tail(200)
 
 eclipses_list = df['Date'].tolist()
 eclipse_actual_time = df['GrEclTime'].tolist()
-get_lunar_eclipses_using_abs_distance()
+#get_lunar_eclipses_using_abs_distance()
 
-# get_all_ecl_2020_2100(get_all_locations=True)
+#get_all_ecl_2020_2100(get_all_locations=False)
+
+get_all_lunar_eclipses(date(2020, 1, 1), date(2100, 12, 31))

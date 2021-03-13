@@ -71,6 +71,25 @@ def calculate_diff_for_coords(coord, date_str):
     return moon_radius + sun_radius - separation
 
 
+def calculate_diff_for_coords_lunar(coord, date_str):
+    coords = coord.split(":")
+    long = coords[0]
+    lat = coords[1]
+    obs = ephem.Observer()
+    obs.lon = long
+    obs.lat = lat
+    obs.elevation = 0
+    obs.date = date_str
+
+    moon_pos = ephem.Moon(obs)
+    sun_pos = ephem.Sun(obs)
+
+    separation_str = [float(token) for token in str(ephem.separation(moon_pos, sun_pos)).split(":")]
+    separation = separation_str[0] + separation_str[1] / 60 + separation_str[2] / 3600
+
+    return min(abs(separation - 180), abs(separation + 180))
+
+
 def is_initial_separation_condition_valid(date_str):
     c = '0:0'
     date_str = date_str + ' 12:00:00'
@@ -86,6 +105,20 @@ def check_if_any_coord_validate_eq(date_str):
     for c in coordinates:
         res = calculate_diff_for_coords(c, date_str)
         if res > -0.003 and res > best:
+            found = True
+            best = res
+            best_coord = c
+    return found, best, best_coord
+
+
+def check_if_any_coord_validate_eq_lunar(date_str):
+    coordinates = get_coordinates()
+    best = 100000
+    found = False
+    best_coord = ''
+    for c in coordinates:
+        res = calculate_diff_for_coords_lunar(c, date_str)
+        if res < 0.56 and res < best:
             found = True
             best = res
             best_coord = c
