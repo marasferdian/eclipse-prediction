@@ -17,19 +17,6 @@ print(train.head())
 neg = 0
 pos = 0
 counter = 0
-new_labels = []
-for i in range(len(train_labels)):
-    if train_labels[i] == 0:
-        if counter % 1 == 0:
-            neg += 1
-            new_labels.append(0)
-        else:
-            train =train.drop([i], axis=0)
-        counter += 1
-    if train_labels[i] == 1:
-        pos += 1
-        new_labels.append(1)
-
 
 final_test_df = df[int(0.4636 * len(df)):]
 print(final_test_df.head())
@@ -45,7 +32,6 @@ features = list(train.columns)
 print(train.shape)
 # tree = DecisionTreeClassifier(random_state=RSEED, max_depth=2)
 tree = RandomForestClassifier(n_estimators=100, criterion='gini', max_depth=2, min_samples_split=30, min_samples_leaf=1, min_weight_fraction_leaf=0.0, max_features='auto', max_leaf_nodes=None, min_impurity_decrease=0.0, min_impurity_split=None, bootstrap=True, oob_score=False, n_jobs=None, random_state=None, verbose=0, warm_start=False, class_weight=None, ccp_alpha=0.0, max_samples=None)
-train_labels = new_labels
 tree.fit(train, train_labels)
 #print(f'Decision tree has {tree.tree_.node_count} nodes with maximum depth {tree.tree_.max_depth}.')
 print(f'Model Accuracy: {tree.score(train, train_labels)}')
@@ -78,6 +64,7 @@ print(actual)
 
 print("Final accuracy:")
 accuracy = (eclipses - false_positives) / actual
+print(accuracy)
 labels = ['True Negatives','False Positives','False Negatives','True Positives']
 categories = ['Zero', 'One']
 cf_matrix = confusion_matrix(final_test_labels, predictions)

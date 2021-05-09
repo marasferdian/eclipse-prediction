@@ -22,22 +22,6 @@ counter = 0
 print(neg, pos)
 print(df.shape)
 
-new_labels = []
-for i in range(len(train_labels)):
-    if i % 1000 == 0:
-        print(i)
-    if train_labels[i] == 0:
-        if counter % 1 == 0:
-            neg += 1
-            new_labels.append(0)
-        else:
-            train = train.drop([i], axis=0)
-        counter += 1
-    if train_labels[i] == 1:
-        pos += 1
-        new_labels.append(1)
-
-train_labels = new_labels
 final_test_df = df[int(0.4636 * len(df)):]
 print(final_test_df.head())
 final_test_labels = np.array(final_test_df.pop('Is Eclipse'))
@@ -92,6 +76,7 @@ print("Precision")
 print(precision_score(final_test_labels, predictions))
 print("F1")
 f1 = f1_score(final_test_labels, predictions)
+print(f1)
 labels = ['True Negatives','False Positives','False Negatives','True Positives']
 categories = ['Zero', 'One']
 cf_matrix = confusion_matrix(final_test_labels, predictions)
