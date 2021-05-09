@@ -1,6 +1,6 @@
 import csv
 from datetime import datetime, date, timedelta
-from helper_functions import get_minimum_separation
+import numerical_methods.helper_functions as hf
 import pandas as pd
 
 df = pd.read_csv('../numerical_methods/solar-eclipses.csv', parse_dates=['Date'])
@@ -16,7 +16,7 @@ with open('../ML/solar-eclipses-classif.csv', mode='w') as csv_file:
     end_date = date(2100, 12, 31)
     while start_date <= end_date:
         date_str = datetime.strftime(start_date, '%Y-%m-%d')
-        sep = get_minimum_separation(date_str)
+        sep = hf.get_minimum_separation(date_str)
         isEclipse = date_str in eclipses_list
         writer.writerow({'Date': date_str, 'Separation': sep, 'Is Eclipse': isEclipse})
         print(date_str)
